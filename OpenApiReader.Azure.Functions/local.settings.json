@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "authUrl": "https://login.puskee.com/auth/realms/develop/protocol/openid-connect/auth",
+    "tokenUrl": "https://login.puskee.com/auth/realms/develop/protocol/openid-connect/token",
+    "OpenApiUrl": "http://localhost:7071/api/demos/openapi/v1",
+    "OpenApiOauth2RedirectUrl": "http://localhost:7071/api/demos/openapi/auth",
+    "OpenApiClientId": "core",
+    "OpenApiClientSecret": "d77f687e-80e5-41f9-b287-e4ed551670d8",
+    "BarracudaAuthUrl": "https://localhost:7071/api/permissions/Auth"
+  }
+}
