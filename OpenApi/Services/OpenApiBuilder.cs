@@ -84,8 +84,23 @@ namespace Barracuda.OpenApi.Services
             if (i >= 0)
             {
                 content = content.Remove(i, "BarracudaAuthUrl".Length);
-                content = content.Insert(i, _settings.BarracudaAuthUrl + "'");
+                content = content.Insert(i, _settings.BarracudaAuthUrl);
             }
+
+            i = content.IndexOf("BarracudaRefreshTokenUrl");
+            if (i >= 0)
+            {
+                content = content.Remove(i, "BarracudaRefreshTokenUrl".Length);
+                content = content.Insert(i, _settings.BarracudaRefreshTokenUrl);
+            }
+
+            i = content.IndexOf("BarracudaRefreshUrl");
+            if (i >= 0)
+            {
+                content = content.Remove(i, "BarracudaRefreshUrl".Length);
+                content = content.Insert(i, _settings.BarracudaRefreshUrl);
+            }
+
 
             return new ContentResult
             {

@@ -6,7 +6,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3.17.0/swagger-ui.css">
     <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js" charset="UTF-8"></script>
     <script>
-      
+        var elementClicked;
+
         function render() {
             var ui = SwaggerUIBundle({
                 url: '',
@@ -15,15 +16,25 @@
                 presets: [
                     SwaggerUIBundle.presets.apis,
                     SwaggerUIBundle.SwaggerUIStandalonePreset
-                ]
+                ],
+                onComplete: function () {
+                },
+                requestInterceptor: function (request) {
+                    return request;
+                },
+                responseInterceptor: async function (resp) {
+                    if (resp.status === 401 && resp.text === "SecurityTokenExpired") {
+                        await RefreshAll();
+                    }
+                    
+                    return resp;
+                },
             });
 
             ui.initOAuth({
                 clientId: '',
                 clientSecret: '',
             });
-
-           
         }
 
         function ModalLogin() {
@@ -36,30 +47,117 @@
         }
 
         
-        function postLogin() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4) {
-                    if (this.status == 200) {
-                        var x = document.getElementById("BarracudaModal");
-                        x.style.display = "none";
-                        alert("Barracuda sign in sucessful")
-                        console.log(this.responseText);
-                    }
-                    else {
-                        alert("No authorized")
-                    }
-                }
-            };
-            var model = {
-                email: document.getElementById("email").value,
-                password: document.getElementById("password").value 
+        async function postLogin() {
+            var flag = true;
+            await Auth()
+                .then(async (res) => {
+                })
+                .catch((err) => {
+                    flag = false;
+                })
+
+            await GetRefreshToken(flag);
+        }
+
+        async function RefreshAll() {
+            var flag = true;
+            await Refresh()
+                .then(async (res) => {
+                })
+                .catch((err) => {
+                    flag = false;
+                })
+
+            await GetRefreshToken(flag, true);
+        }
+
+        async function GetRefreshToken(flag, fromRefreshAll) {
+            if (flag) {
+                await RefreshToken(fromRefreshAll)
+                    .then((res) => {
+                    })
+                    .catch((err) => {
+                    })
             }
-            var json = JSON.stringify(model);
-            console.log(json);
-            xhttp.open("POST", "BarracudaAuthUrl", true);
-            xhttp.setRequestHeader("Content-type", "application/json");
-            xhttp.send(json);
+        }
+
+        function Auth() {
+            return new Promise((resolve, reject) => {
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    if (this.readyState == 4) {
+                        if (this.status == 200) {
+                            resolve();
+                        }
+                        else {
+                            reject();
+                        }
+                    }
+                };
+                var model = {
+                    email: document.getElementById("email").value,
+                    password: document.getElementById("password").value
+                }
+
+                var json = JSON.stringify(model);
+                xhttp.open("POST", "BarracudaAuthUrl", true);
+                xhttp.setRequestHeader("Content-type", "application/json");
+                xhttp.withCredentials = true;
+                xhttp.send(json);
+            })
+        }
+
+        function RefreshToken(fromRefreshAll) {
+            return new Promise((resolve, reject) => {
+                var xhttpRefreshToken = new XMLHttpRequest();
+                xhttpRefreshToken.onreadystatechange = function () {
+                    if (this.readyState == 4) {
+                        if (this.status == 200) {
+                            var x = document.getElementById("BarracudaModal");
+                            document.getElementById("password").value = "";
+                            x.style.display = "none";
+                            if (!fromRefreshAll) {
+                                alert("Barracuda sign in sucessful");
+                            }
+                            else {
+                                alert("Token auth refreshed, execute again!");
+                            }
+                            resolve();
+                        }
+                        else {
+                            alert("No authorized");
+                            reject();
+                        }
+                    }
+                };
+
+                xhttpRefreshToken.open("POST", "BarracudaRefreshTokenUrl", true);
+                xhttpRefreshToken.setRequestHeader("Content-type", "application/json");
+                xhttpRefreshToken.withCredentials = true;
+                xhttpRefreshToken.send();
+            })
+        }
+
+        function Refresh() {
+            return new Promise((resolve, reject) => {
+                var xhttpRefresh = new XMLHttpRequest();
+                xhttpRefresh.onreadystatechange = function () {
+                    if (this.readyState == 4) {
+                        if (this.status == 200) {
+                            resolve();
+                        }
+                        else {
+                            alert("No authorized");
+                            reject();
+                        }
+                    }
+                };
+
+                xhttpRefresh.open("POST", "BarracudaRefreshUrl", true);
+                xhttpRefresh.setRequestHeader("Content-type", "application/json");
+                xhttpRefresh.withCredentials = true;
+                xhttpRefresh.send();
+            })
         }
 
     </script>

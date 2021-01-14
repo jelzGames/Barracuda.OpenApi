@@ -3,12 +3,26 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-    "authUrl": "https://login.puskee.com/auth/realms/develop/protocol/openid-connect/auth",
-    "tokenUrl": "https://login.puskee.com/auth/realms/develop/protocol/openid-connect/token",
-    "OpenApiUrl": "http://localhost:7071/api/demos/openapi/v1",
-    "OpenApiOauth2RedirectUrl": "http://localhost:7071/api/demos/openapi/auth",
-    "OpenApiClientId": "core",
-    "OpenApiClientSecret": "d77f687e-80e5-41f9-b287-e4ed551670d8",
-    "BarracudaAuthUrl": "https://localhost:7071/api/permissions/Auth"
+
+    /* Authorization Code Grant Type Flow */
+    "authUrl": "https://yourDomain/protocol/openid-connect/auth",
+    "tokenUrl": "https://yourDomain/protocol/openid-connect/token",
+    "OpenApiUrl": "https://www.mysite.dev:7075/api/demos/openapi/v1",
+    "OpenApiOauth2RedirectUrl": "https://www.mysite.dev:7075/api/demos/openapi/auth",
+    "OpenApiClientId": "demo",
+    "OpenApiClientSecret": "e55f687e-80e4-61f9-c287-e4ed551670d8",
+
+    /* Client Credentials Grant Flow */
+    /* Barracuda */
+    "JWTKey": "401b09eab3c013d4ca54922bb802bec8fd5318192b0a75f201d8b3727429090fb337591abd3e44453b954555b7a0812e1081c39b740293f765eae731f5a65ed1",
+    "IUsser": "Delivers",
+    "Audencie": "AllUsers",
+    "CookieToken": "X-Access-Token",
+    "CookieRefreshToken": "X-Refresh-Token",
+    "CookieTokenPath": "/api",
+    "CookieRefreshTokenPath": "/api/permissions/Refresh",
+    "BarracudaAuthUrl": "https://www.mysite.dev:7070/api/permissions/Auth",
+    "BarracudaRefreshTokenUrl": "https://www.mysite.dev:7070/api/permissions/RefreshToken",
+    "BarracudaRefreshUrl": "https://www.mysite.dev:7070/api/permissions/Refresh"
   }
 }

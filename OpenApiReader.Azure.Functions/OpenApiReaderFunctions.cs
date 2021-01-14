@@ -11,6 +11,9 @@ using System.Reflection;
 using Barracuda.OpenApi.Interfaces;
 using Barracuda.OpenApi.Attributes;
 using Demo.Azure.Functions.Models;
+using Barracuda.Indentity.Provider.Services;
+using System.Security.Claims;
+using Barracuda.Indentity.Provider.Interfaces;
 
 namespace Demo.Azure.Functions
 {
@@ -19,16 +22,22 @@ namespace Demo.Azure.Functions
 
     public class OpenApiReaderFunctions
     {
+        private readonly IUserInfo _userInfo;
         public readonly IOpenApiBuilder _builder;
-      
+        private readonly IErrorMessages _errors;
+
         public OpenApiReaderFunctions(
-            IOpenApiBuilder builder
+            IOpenApiBuilder builder,
+             IUserInfo userInfo,
+               IErrorMessages errors
             )
         {
             _builder = builder;
+            _userInfo = userInfo;
+            _errors = errors;
         }
 
-        [FunctionName("GetDemo")]
+        [FunctionName("GetAll")]
         /*
            open api reader attributes 
         */
@@ -43,14 +52,16 @@ namespace Demo.Azure.Functions
         [OpenAPIProducesResponse(typeof(List<DemoModels>))]
         [HttpGet]
         [Route("/api/demos/GetAll")]
-        public async Task<IActionResult> GetDemo(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "demos/GetDemo")] HttpRequest req,
+        public async Task<IActionResult> GetAll(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "demos/GetAll")] HttpRequest req,
             ILogger log)
         {
             return await Task.FromResult(new OkObjectResult(new List<DemoModels>()));
         }
 
-
+        //
+        //this sample use Barracuda Identity provider to authotization
+        //
         [FunctionName("GetWithId")]
         [OpenAPI]
         [Summary("Get a product register")]
@@ -60,8 +71,27 @@ namespace Demo.Azure.Functions
         [HttpGet]
         [Route("/api/demos/Get/{id}")]
         public async Task<IActionResult> Get(
-           [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "demos/Get/{id}")] HttpRequest req, string id)
+           [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "demos/Get/{id}")] HttpRequestMessage req, 
+           string id, HttpRequest request)
         {
+            var resultAuth = validAuthorized(req, request);
+            if (!resultAuth.Success)
+            {
+                if (resultAuth.Message == _errors.NotAuthorized)
+                {
+                    return new UnauthorizedResult();
+                }
+                else
+                {
+                    var objectResult = new ObjectResult(resultAuth.Message)
+                    {
+                        StatusCode = StatusCodes.Status401Unauthorized
+                    };
+
+                    return objectResult;
+                }
+            }
+
             return await Task.FromResult(new OkObjectResult(new DemoModels()));
         }
 
@@ -74,9 +104,10 @@ namespace Demo.Azure.Functions
         [HttpPost]
         [Route("/api/demos/POST")]
         public async Task<IActionResult> Post(
-         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "demos/POST")] HttpRequestMessage req)
+         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "demos/POST")] HttpRequestMessage req,
+         HttpRequest request)
         {
-
+           
             DemoModels data = await req.Content.ReadAsAsync<DemoModels>();
 
             return await Task.FromResult(new OkObjectResult("demo post"));
@@ -100,6 +131,11 @@ namespace Demo.Azure.Functions
         public async Task<IActionResult> OpenAPIAuth([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "demos/openapi/auth")] HttpRequestMessage request)
         {
             return await Task.FromResult(_builder.OpenAPIAuth());
+        }
+
+        private Result<ClaimsPrincipal> validAuthorized(HttpRequestMessage req, HttpRequest request)
+        {
+            return _userInfo.ValidateTokenAsync(req.Headers, request.HttpContext.Connection.RemoteIpAddress);
         }
     }
 }

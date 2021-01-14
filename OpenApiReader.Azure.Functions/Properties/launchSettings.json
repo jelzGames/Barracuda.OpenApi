@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Demo.Azure.Functions": {
+      "commandName": "Project",
+      "commandLineArgs": "host start --port 7075 --useHttps --cert \"cert.pfx\" --password \"123\" --pause-on-error"
+    }
+  }
+}

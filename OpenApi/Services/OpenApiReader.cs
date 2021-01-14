@@ -14,6 +14,7 @@ namespace Barracuda.OpenApi.Services
 {
     public class OpenApiReader : IOpenApiReader
     {
+        public readonly ISettingsOpenApi _settings;
         public string pathSchema = "#/components/schemas/";
         Dictionary<string, IDictionary<string, Object>> componentsType;
         Dictionary<string, Type> types;
@@ -21,10 +22,13 @@ namespace Barracuda.OpenApi.Services
         Type attrSystemresponse;
         
 
-        public OpenApiReader() {
+        public OpenApiReader(
+            ISettingsOpenApi settings)
+        {
             componentsType = new Dictionary<string, IDictionary<string, object>>();
             types = new Dictionary<string, Type>();
             typeSearch = new List<Type>();
+            _settings = settings;
 
         }
 
@@ -84,6 +88,11 @@ namespace Barracuda.OpenApi.Services
 
             GetSecurity(model);
 
+            schemas = new ExpandoObject() as IDictionary<string, Object>;
+            schemas.Add("type", "apiKey");
+            schemas.Add("in", "cookie");
+            schemas.Add("name", _settings.CookieToken);
+            securitySchemes.Add("cookieAuth", schemas);
 
             var json = JsonConvert.SerializeObject(model, Formatting.Indented);
 
@@ -851,6 +860,7 @@ namespace Barracuda.OpenApi.Services
             var typeList = new List<object>();
 
             type.Add("oAuthNoScopes", typeList);
+            type.Add("cookieAuth", typeList);
             securityList.Add(type);
             model.Add("security", securityList);
 
